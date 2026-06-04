@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { supabase } from "../lib/supabase";
 
 export default function SkillInput({ session }) {
   const [skillText, setSkillText] = useState("");
@@ -13,19 +14,22 @@ export default function SkillInput({ session }) {
 
   useEffect(() => {
     const fetchHistory = async () => {
-      if (userId) {
-        try {
-          const response = await axios.get(
-            `http://localhost:5000/history?user_id=${userId}`,
-          );
-          setHistory(response.data);
-        } catch (error) {
-          console.error("Gagal mengambil history:", error);
-        }
-      } else {
-        setHistory([]);
+      if (!userId) return;
+
+      const { data, error } = await supabase
+        .from("history")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Gagal mengambil history:", error);
+        return;
       }
+
+      setHistory(data);
     };
+
     fetchHistory();
   }, [userId]);
 
@@ -99,12 +103,26 @@ export default function SkillInput({ session }) {
       );
       setResult(response.data);
 
-      //if (userId) {
-      //  const historyResponse = await axios.get(
-      //    "https://capstone-backend-production-cb7c.up.railway.app",
-      //  );
-      //  setHistory(historyResponse.data);
-      //}
+      const { error } = await supabase.from("history").insert({
+        user_id: userId,
+        skills: skillText,
+        recommendation: response.data.recommendation,
+        missing_skills: response.data.missing_skills,
+        analysis: response.data.analysis,
+      });
+
+      if (error) {
+        console.error("Insert history gagal:", error);
+      } else {
+        // 🔥 RELOAD HISTORY SETELAH INSERT BERHASIL
+        const { data } = await supabase
+          .from("history")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
+
+        setHistory(data);
+      }
     } catch (error) {
       console.error("ERROR:", error);
       console.error("RESPONSE:", error.response?.data);
@@ -117,7 +135,7 @@ export default function SkillInput({ session }) {
 
   const handleDeleteHistory = async () => {
     try {
-      await axios.delete(`http://localhost:5000/history?user_id=${userId}`);
+      await supabase.from("history").delete().eq("user_id", userId);
       setHistory([]);
     } catch (error) {
       console.error(error);
@@ -309,7 +327,7 @@ export default function SkillInput({ session }) {
           </div>
 
           <div className="space-y-3">
-            {history.map((item) => {
+            {(history || []).map((item) => {
               const tanggalMentah = item.created_at || item.createdAt;
               const tanggalDiformat = tanggalMentah
                 ? new Date(tanggalMentah).toLocaleDateString("id-ID", {
