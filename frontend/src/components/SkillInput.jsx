@@ -90,10 +90,13 @@ export default function SkillInput({ session }) {
 
     try {
       setLoading(true);
-      const response = await axios.post("http://localhost:5000/analyze", {
-        skills: skillText,
-        user_id: userId,
-      });
+      const response = await axios.post(
+        "https://capstone-backend-production-cb7c.up.railway.app/predict",
+        {
+          skills: skillText,
+          user_id: userId,
+        },
+      );
       setResult(response.data);
 
       if (userId) {
