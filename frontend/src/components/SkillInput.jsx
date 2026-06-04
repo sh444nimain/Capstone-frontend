@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../supabaseClient";
 
 export default function SkillInput({ session }) {
   const [skillText, setSkillText] = useState("");
