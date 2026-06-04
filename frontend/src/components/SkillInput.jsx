@@ -99,14 +99,16 @@ export default function SkillInput({ session }) {
       );
       setResult(response.data);
 
-      if (userId) {
-        const historyResponse = await axios.get(
-          "https://capstone-backend-production-cb7c.up.railway.app",
-        );
-        setHistory(historyResponse.data);
-      }
+      //if (userId) {
+      //  const historyResponse = await axios.get(
+      //    "https://capstone-backend-production-cb7c.up.railway.app",
+      //  );
+      //  setHistory(historyResponse.data);
+      //}
     } catch (error) {
-      console.error(error);
+      console.error("ERROR:", error);
+      console.error("RESPONSE:", error.response?.data);
+      console.error("STATUS:", error.response?.status);
       alert("Backend gagal connect");
     } finally {
       setLoading(false);
